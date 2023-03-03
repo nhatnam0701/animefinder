@@ -23,21 +23,20 @@ router.get('/anime', (req, res) => {
         })
         // Reply to the client
         .then((rsp) =>{
-            // Create the page based on the retrieved data
-            const s = createResultPage(rsp.data);
+            if (rsp.data.length > 0){
+                // Create the page based on the retrieved data
+                const s = createResultPage(rsp.data);
 
-            // Write the page
-            res.write(s);
-            res.end();
+                // Write the page
+                res.write(s);
+                res.end();
+            } else {
+                displayNoResultPage(res);
+            }
         })
         // Handle errors if any
         .catch((error) => {
-            //
-            if (error.response.status === 404){
-                displayNoResultPage(res);
-            } else {
-                displayErrorPage(res);
-            };
+            displayErrorPage(res);
         })
 });
 
@@ -75,24 +74,27 @@ function createResultPage(rsp) {
 
     // For each anime title
     for (let i = 0; i < rsp.length; i++){
-        // Add to anime to the string
-        result +=
-        `<div class="col">
-        <div class="card mb-6 h-100 p-2" style="border: 2px solid #a3a199">
-            <div class="row g-0">
-            <div class="col-md-4 align-self-center">
-                <img src="${rsp[i].images.jpg.image_url}" class="img-fluid rounded-start" alt="${rsp[i].title}">
-            </div>
-            <div class="col-md-8">
-                <div class="card-body">
-                <h5 class="card-title"><a href="/anime/${rsp[i].mal_id}" target="_blank" style="text-decoration: none">${rsp[i].title}</a></h5>
-                <p class="card-text">${rsp[i].synopsis}</p>
-                <p class="card-text "><small class="text-muted">Rated: ${rsp[i].rating}</small></p>
+        // Check if the entry is valid (not placeholder - API side )
+        if (rsp[i].synopsis !== null){
+            // Add to anime to the string
+            result +=
+            `<div class="col">
+            <div class="card mb-6 h-100 p-2" style="border: 2px solid #a3a199">
+                <div class="row g-0">
+                <div class="col-md-4 align-self-center">
+                    <img src="${rsp[i].images.jpg.image_url}" class="img-fluid rounded-start" alt="${rsp[i].title}">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                    <h5 class="card-title"><a href="/anime/${rsp[i].mal_id}" target="_blank" style="text-decoration: none">${rsp[i].title}</a></h5>
+                    <p class="card-text">${rsp[i].synopsis}</p>
+                    <p class="card-text "><small class="text-muted">Rated: ${rsp[i].rating}</small></p>
+                    </div>
+                </div>
                 </div>
             </div>
-            </div>
-        </div>
-        </div>`
+            </div>`
+        }
     }
     
     // Add the infomation to the html
@@ -126,7 +128,7 @@ function createResultPage(rsp) {
 // Display page when no result is found
 function displayNoResultPage(res){
     // Return status 404 
-    res.writeHead(404,{'content-type': 'text/html'});
+    // res.writeHead(404,{'content-type': 'text/html'});
 
     // Read the error page html
     fs.readFile('errors/noResult.html', 'utf8', (err, data) => {
