@@ -9,7 +9,7 @@ router.use(logger('tiny'));
 // Search for anime route
 router.get('/anime', (req, res) => {
     // Retrieve queries and initialise the API url
-    const name = req.query['animeName'].replace(new RegExp(' ', 'g'), "_"); // Replace space with underscores
+    const name = req.query['animeName']; //.replace(new RegExp(' ', 'g'), "_"); // Replace space with underscores
     const options = createJikanOptions(name, req.query['genre'])
     const url = `https://${options.hostname}${options.path}`;
     console.log(url);
@@ -24,7 +24,7 @@ router.get('/anime', (req, res) => {
         // Reply to the client
         .then((rsp) =>{
             // Create the page based on the retrieved data
-            const s = createResultPage(rsp.results);
+            const s = createResultPage(rsp.data);
 
             // Write the page
             res.write(s);
@@ -46,7 +46,7 @@ function createJikanOptions(query,genre) {
     const options = {
         hostname: 'api.jikan.moe/v4',
         port: 443,
-        path: '/search/anime?',
+        path: '/anime?',
         method: 'GET'
     }
 
@@ -68,11 +68,11 @@ function createJikanOptions(query,genre) {
     return options;
 }
 
-//////////////////////// May put in a different js file
 // Create result html page from the respond from the API
 function createResultPage(rsp) {
     // Initialise a string to hold the result
     let result = "";
+
     // For each anime title
     for (let i = 0; i < rsp.length; i++){
         // Add to anime to the string
@@ -81,13 +81,13 @@ function createResultPage(rsp) {
         <div class="card mb-6 h-100 p-2" style="border: 2px solid #a3a199">
             <div class="row g-0">
             <div class="col-md-4 align-self-center">
-                <img src="${rsp[i].image_url}" class="img-fluid rounded-start" alt="${rsp[i].title}">
+                <img src="${rsp[i].images.jpg.image_url}" class="img-fluid rounded-start" alt="${rsp[i].title}">
             </div>
             <div class="col-md-8">
                 <div class="card-body">
                 <h5 class="card-title"><a href="/anime/${rsp[i].mal_id}" target="_blank" style="text-decoration: none">${rsp[i].title}</a></h5>
                 <p class="card-text">${rsp[i].synopsis}</p>
-                <p class="card-text "><small class="text-muted">Rated: ${rsp[i].rated}</small></p>
+                <p class="card-text "><small class="text-muted">Rated: ${rsp[i].rating}</small></p>
                 </div>
             </div>
             </div>
