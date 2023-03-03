@@ -21,14 +21,14 @@ router.get('/anime/:id', async (req, res) => {
         ])
         // Store the responses into an array
         .then(axios.spread((...rsp) => {
-            return [rsp[0].data, rsp[1].data];
+            return [rsp[0].data.data, rsp[1].data.data];
         }))
         // Handle errors if any
         .catch((error) => {
             // Display error page
             displayErrorPage(res);
         });
-
+    
     // Retrieve queries and initialise Safebooru API url
     const title = info[0].title.replace(new RegExp(' ', 'g'), "_"); // replace spaces in the title with underscores
     const numOfArts = 24; // number of fanarts will be retrieved
@@ -63,7 +63,7 @@ router.get('/anime/:id', async (req, res) => {
         // Reply to the client
         .then((rsp) =>{
             // Create the page based on the retrieved data
-            const s = createDetailPage(info[0], info[1].recommendations, rsp);
+            const s = createDetailPage(info[0], info[1], rsp);
 
             // Write the page
             res.write(s);
@@ -140,35 +140,40 @@ function parseFanArtRsp(images) {
 function createDetailPage(jikanAnimeRsp, jikanRecRsp, safebooruRsp) {
     // Anime details
     let details = 
-    `<h1 class="text-center">${jikanAnimeRsp.title_english}</h1>
+    `<h1 class="text-center">${jikanAnimeRsp.title}</h1>
     <div class = "card p-2" style="border: 2px solid #a3a199">
     <div class = "row g-0">
         <div class = "col-md-3 col-lg-2 text-center align-self-center">
-            <img src="${jikanAnimeRsp.image_url}" class="img-fluid rounded-start" alt="${jikanAnimeRsp.title_english}">
+            <img src="${jikanAnimeRsp.images.jpg.image_url}" class="img-fluid rounded-start" alt="${jikanAnimeRsp.title_english}">
         </div>
         <div class = "col-md-9 col-lg-10">
         <div class = "card-body">
         <p class="card-text">${jikanAnimeRsp.synopsis}</p><hr>
         <p class="card-text">Rating: ${jikanAnimeRsp.rating}</p>
-        <p class="card-text">Number of episodes: ${jikanAnimeRsp.episodes}</p>
+        <p class="card-text">Year: ${jikanAnimeRsp.year}</p>
         <p class="card-text">Status: ${jikanAnimeRsp.status}</p><hr>
         <p class="card-text"><a href="${jikanAnimeRsp.url}" target="_blank">View on MyAnimeList</a></p>
     </div></div></div></div>`;
 
+
     // Anime recommendations
     const numOfRec = 12; // The maximum number of recommendations showed
     let recommendations = ""; // string to hold the result
+ 
     // For every recommendation
     for (let i = 0; i < Math.min(numOfRec, jikanRecRsp.length); i++){
-        // Add the recommendation to the string
+        // Get the data from the respond json
+        let rec_json = jikanRecRsp[i].entry;
+
+        // Add the recommendation to the string  
         recommendations +=
         `<div class="col">
         <div class="card mb-1 h-100 text-center " style="border: 2px solid #a3a199">
             <div class="card-body ">
-            <img src="${jikanRecRsp[i].image_url}" class="card-img-top" alt="${jikanRecRsp[i].title}">
+            <img src="${rec_json.images.jpg.image_url}" class="card-img-top" alt="${rec_json.title}">
             </div>
             <div class="card-footer">
-                <h6><a href="/anime/${jikanRecRsp[i].mal_id}" style="text-decoration: none">${jikanRecRsp[i].title}</a></h6>
+                <h6><a href="/anime/${rec_json.mal_id}" style="text-decoration: none">${rec_json.title}</a></h6>
             </div>
         </div>
         </div>`
@@ -190,7 +195,7 @@ function createDetailPage(jikanAnimeRsp, jikanRecRsp, safebooruRsp) {
         <!-- Bootstrap CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
 
-        <title>${jikanAnimeRsp.title_english}</title>
+        <title>${jikanAnimeRsp.title}</title>
     </head>
     <body class = "m-4 bg-image" style="background-image: url('https://wallpaper.dog/large/10848834.jpg'); ">
     <div style="background-color: rgba(255, 255, 255, 0.8);" class = "p-4">` +

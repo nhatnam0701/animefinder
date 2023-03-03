@@ -75,7 +75,7 @@ function createResultPage(rsp) {
     // For each anime title
     for (let i = 0; i < rsp.length; i++){
         // Check if the entry is valid (not placeholder - API side )
-        if (rsp[i].synopsis !== null){
+        if (rsp[i].synopsis !== null && rsp[i].mal_id < 50000){ // somehow id > 50000 is repetitive and does not have enough info (API side)
             // Add to anime to the string
             result +=
             `<div class="col">
